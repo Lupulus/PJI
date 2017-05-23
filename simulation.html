@@ -4,8 +4,10 @@
     <title>Mon premier rendu 3D avec Three.js</title>
     <meta charset="utf-8">
     <link  href="css/main.css" rel="stylesheet"/>
+    <link  href="style.css" rel="stylesheet"/>
   </head>
 <body>
+  <div id="topmenu"></div>
   <script src="lib/three.js"></script>
 	<script src="lib/three.min.js"></script>
   <script src="lib/js/Mirror.js"></script>
@@ -13,13 +15,23 @@
 
 		<script type="text/javascript">
 
+      document.addEventListener('onscroll', onDocumentMouseScroll, false);
       document.addEventListener('mousemove', onDocumentMouseMove, false);
       var container = document.createElement('div');
 			document.body.appendChild(container);
-      
+
+      var GUIDES ={
+        "Frontiere": "frontiere",
+        "Fleche": "fleche",
+        "Texte": "texte",
+        "Ligne": "ligne",
+        "Halo": "halo"
+      };
+
+      var menu = document.getElementById("topmenu");
 			var renderer, scene, camera, roi1, roi2, roi3;
 			var controls, carton;
-      var mouseX = 20, mouseY = 50;
+      var mouseX = 20, mouseY = 50, mouseZ = 20;
 			var params = {opacity: 0.25};
 			var WIDTH = window.innerWidth;
 			var HEIGHT = window.innerHeight;
@@ -96,6 +108,8 @@
 
 
 				//Création des guides
+        //On initialise les boutons des guides
+        createMenu();
 
 				var guideFront = new THREE.MeshBasicMaterial( {
 					opacity: params.opacity + 0.5,
@@ -149,6 +163,25 @@
 				container.appendChild(renderer.domElement);
 			}
 
+      function createMenu(){
+        for ( var g in GUIDES ) {
+
+					var button = document.createElement( 'button' );
+					button.innerHTML = g;
+					menu.appendChild( button );
+
+					var osc =  GUIDES[ g ];
+
+					button.addEventListener( 'click', changeVisible( osc ), false );
+
+				}
+
+      }
+
+      function changeVisible(osc){
+
+      }
+
 			function animate(){
 
 				// on fait tourner le cube sur ses axes x et y
@@ -157,6 +190,7 @@
 				// on effectue le rendu de la scène
         carton.position.x = mouseX;
         carton.position.y = mouseY;
+        carton.position.z = mouseZ;
 				renderer.render( scene, camera );
 
 
@@ -165,9 +199,15 @@
 			}
 
 			function onDocumentMouseMove(event){
-        mouseX = event.clientX - canvas.left;
-        mouseY = event.clientY - canvas.top;
+        mouseX = event.clientX  - window.innerWidth/2;
+        mouseY = event.clientY  - window.innerHeight/2;
 			}
+
+      function onDocumentMouseScroll(event){
+
+          mouseZ -=  event.wheelDeltaY * 0.05;
+
+      }
 </script>
 
 

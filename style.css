@@ -2,20 +2,6 @@ html, body {
   height: 100%;
 }
 
-body {
-  background-color: #050505;
-
-  background: rgb(43,45,48); /* Old browsers */
-  background: -moz-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%, rgba(0,0,0,1) 100%); /* FF3.6+ */
-  background: -webkit-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* Opera 12+ */
-  background: -ms-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* IE10+ */
-  background: radial-gradient(ellipse at center,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* W3C */
-
-  margin: 0;
-  font-family: Arial;
-  overflow: hidden;
-}
 
 a {
   color: #ffffff;
@@ -36,7 +22,8 @@ a {
 
 #menu {
   position: absolute;
-  bottom: 20px;
+  top: 20px;
+  float: right;
   width: 100%;
   text-align: center;
   padding: 0;
@@ -55,7 +42,7 @@ a {
 }
 
 button {
-  color: rgb(255,255,255);
+  color: rgb(0,0,0);
   background: transparent;
   border: 0px;
   padding: 5px 10px;
