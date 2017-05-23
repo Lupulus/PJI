@@ -7,13 +7,19 @@
     <link  href="style.css" rel="stylesheet"/>
   </head>
 <body>
-  <div id="topmenu"></div>
+  <div id="topmenu">
+  	<button onclick="changeVisible('frontiere')">Frontiere</button>
+  	<!-- <button onclick="changeVisible('halo')">Halo</button> -->
+  	<button onclick="changeVisible('texte')">Texte</button>
+  	<button onclick="changeVisible('ligne')">Ligne</button>
+  	<button onclick="changeVisible('fleche')">Fleche</button>
+  </div>
   <script src="lib/three.js"></script>
 	<script src="lib/three.min.js"></script>
   <script src="lib/js/Mirror.js"></script>
 	<script src="lib/js/controls/TrackballControls.js"></script>
 
-		<script type="text/javascript">
+	<script type="text/javascript">
 
       document.addEventListener('onscroll', onDocumentMouseScroll, false);
       document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -28,10 +34,13 @@
         "Halo": "halo"
       };
 
-      var menu = document.getElementById("topmenu");
+      		var front1, front2, front3, front4;
+      		var fleche, ligne, texte;
+      		var halo1, halo2, halo3;
+     		var menu = document.getElementById("topmenu");
 			var renderer, scene, camera, roi1, roi2, roi3;
 			var controls, carton;
-      var mouseX = 20, mouseY = 50, mouseZ = 20;
+      		var mouseX = 20, mouseY = 50, mouseZ = 20;
 			var params = {opacity: 0.25};
 			var WIDTH = window.innerWidth;
 			var HEIGHT = window.innerHeight;
@@ -44,15 +53,15 @@
 
 				// on initialise la camera que l’on place ensuite sur la scène
 				camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.set(0, 75, 310);
-        scene.add(camera);
+				camera.position.set(0, 75, 400);
+       			scene.add(camera);
 				//Création de la scène
 				var groundMirror = new THREE.Mirror( 200, 200, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x303030 } );
 				groundMirror.rotateX( - Math.PI / 2 );
 				scene.add( groundMirror );
 
 
-        //Création d'un rectangle 3D pour repréenter le carton
+        		//Création d'un rectangle 3D pour repréenter le carton
 				var geometry = new THREE.BoxGeometry( 13, 10, 2 );
 
 				carton = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x778899 }));
@@ -108,8 +117,7 @@
 
 
 				//Création des guides
-        //On initialise les boutons des guides
-        createMenu();
+
 
 				var guideFront = new THREE.MeshBasicMaterial( {
 					opacity: params.opacity + 0.5,
@@ -120,30 +128,83 @@
 				geometry = new THREE.CubeGeometry(200, 200, 200);
 
 
-				var front1 = new THREE.Mesh(geometry, guideFront);
+				front1 = new THREE.Mesh(geometry, guideFront);
 				front1.position.x = 200;
 				front1.position.y = 100;
+				front1.visible = false;
 
-				var front2 = new THREE.Mesh(geometry, guideFront);
+				front2 = new THREE.Mesh(geometry, guideFront);
 				front2.position.y = 100;
 				front2.position.z = -	200;
+				front2.visible = false;
 
-				var front3 = new THREE.Mesh(geometry, guideFront);
+				front3 = new THREE.Mesh(geometry, guideFront);
 				front3.position.x = -200;
 				front3.position.y = 100;
+				front3.visible = false;
 
-				var front4 = new THREE.Mesh(geometry, guideFront);
+				front4 = new THREE.Mesh(geometry, guideFront);
 				front4.position.y = 300;
+				front4.visible = false;
 
 				scene.add(front1);
 				scene.add(front2);
 				scene.add(front3);
 				scene.add(front4);
 
-				var front2 = new THREE.Mesh(geometry, guideFront);
-				front2.position.x = -200;
-				front2.position.y = 0;
+				//TEXTE
+				
+				texte = "coucou";
 
+				//FLECHE
+				//Fleche
+				var vertices = new Float32Array( [
+					 25.0,  30.0,  4,
+					 5.0,   30.0,  4,
+					 10.0,  0.0,   4,
+
+					 10.0,  0.0,   4,
+					 20.0,  0.0,   4,
+					 25.0,  30.0,  4,
+
+					 0.0,   30.0,  4,
+					 30.0,  30.0,  4,
+					 15.0,  50.0,  4
+				] );
+
+				var uvs = new Float32Array( [
+					 1, 1,
+					 0, 1,
+					 0, 0,
+
+					 0, 0,
+					 1, 0,
+					 1, 1
+				] );
+
+				var arrow = new THREE.BufferGeometry();
+				arrow.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+				arrow.attributes.position.needsUpdate = true;
+
+				var arrowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+				fleche = new THREE.Mesh(arrow, arrowMaterial);
+				fleche.position.set(carton.position.x-5, carton.position.y-50, carton.position.z);
+				fleche.visible = false;
+				scene.add(fleche);
+
+				//LIGNE
+				geometry = new THREE.Geometry();
+				geometry.vertices.push(roi1.position);
+				geometry.vertices.push(carton.position);
+				ligne = new THREE.Line(geometry, new THREE.LineBasicMaterial(
+					{
+						color : 0xfff000,
+						opacity : 0.08
+					}));
+				ligne.visible = false;
+				//ligne.attributes.position.needsUpdate = true;
+				scene.add(ligne);
 
 				var spotLight = new THREE.SpotLight( 0x8888ff );
 				spotLight.position.set( - 100, - 200, - 100 );
@@ -161,54 +222,177 @@
 				renderer.shadowMap.type = THREE.PCFShadowMap;
 
 				container.appendChild(renderer.domElement);
+		}
+
+		
+
+		function animate(){
+
+			// on fait tourner le cube sur ses axes x et y
+			//mesh.rotation.x += 0.01;
+			//mesh.rotation.y += 0.02;
+			// on effectue le rendu de la scène
+        	carton.position.x = mouseX;
+       		carton.position.y = mouseY;
+        	carton.position.z = mouseZ;
+			renderer.render( scene, camera );
+
+			arrowUpdate();
+			if(ligne.visible == true)
+				updateLine();
+        	// on appel la fonction animate() récursivement à chaque frame
+			requestAnimationFrame( animate );
+		}
+
+		function arrowUpdate(){
+			fleche.position.set(carton.position.x-90, carton.position.y-70, carton.position.z);
+		}
+
+		function updateLine(){
+			var roiT;
+			var roiP = testROI();
+			switch (roiP){
+				case "roi1":
+					roiT = roi1;
+					break;
+				case "roi2":
+					roiT = roi2;
+					break;
+				case "roi3":
+					roiT = roi3;
 			}
 
-      function createMenu(){
-        for ( var g in GUIDES ) {
+			scene.remove(ligne);
 
-					var button = document.createElement( 'button' );
-					button.innerHTML = g;
-					menu.appendChild( button );
+			geometry = new THREE.Geometry();
+			geometry.vertices.push(roiT.position);
+			var temp = new THREE.Vector3(carton.position.x + 10, carton.position.y + 2, carton.position.z +5);
+			geometry.vertices.push(temp);
+			
+			ligne = new THREE.Line(geometry, new THREE.LineBasicMaterial(
+					{
+						color : 0x000000,
+						opacity : 0.08
+					})
+			);
+			scene.add(ligne);
+		}
 
-					var osc =  GUIDES[ g ];
-
-					button.addEventListener( 'click', changeVisible( osc ), false );
-
-				}
-
-      }
-
-      function changeVisible(osc){
-
-      }
-
-			function animate(){
-
-				// on fait tourner le cube sur ses axes x et y
-				//mesh.rotation.x += 0.01;
-				//mesh.rotation.y += 0.02;
-				// on effectue le rendu de la scène
-        carton.position.x = mouseX;
-        carton.position.y = mouseY;
-        carton.position.z = mouseZ;
-				renderer.render( scene, camera );
-
-
-        // on appel la fonction animate() récursivement à chaque frame
-				requestAnimationFrame( animate );
+		function updateTexte(){
+			var roiT;
+			var roiP = testROI();
+			switch (roiP){
+				case "roi1":
+					roiT = roi1;
+					break;
+				case "roi2":
+					roiT = roi2;
+					break;
+				case "roi3":
+					roiT = roi3;
 			}
 
-			function onDocumentMouseMove(event){
-        mouseX = event.clientX  - window.innerWidth/2;
-        mouseY = event.clientY  - window.innerHeight/2;
-			}
+			scene.remove(texte);
 
-      function onDocumentMouseScroll(event){
+			texte = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+			texte.visible = true;
+			scene.add(texte);
+
+		}
+
+		//Renvoie la ROI la plus proche
+		function testROI(){
+			//Distance carton - roi1
+			var x1 = carton.position.x - roi1.position.x;
+			var y1 = carton.position.y - roi1.position.y;
+			var z1 = carton.position.z - roi1.position.z;
+
+			//Distance carton - roi2
+			var x2 = carton.position.x - roi1.position.x;
+			var y2 = carton.position.y - roi1.position.y;
+			var z2 = carton.position.z - roi1.position.z;
+
+			//Distance carton - roi3
+			var x3 = carton.position.x - roi1.position.x;
+			var y3 = carton.position.y - roi1.position.y;
+			var z3 = carton.position.z - roi1.position.z;
+			//sqrt[(Xa-Xb)²+(Ya-Yb)²+(Za-Zb)²]
+			if( Math.sqrt(x1*x1+y1*y1+z1*z1) < Math.sqrt(x2*x2+y2*y2+z2*z2) ){
+				return "roi1";
+			} else if(Math.sqrt(x2*x2+y2*y2+z2*z2) < Math.sqrt(x3*x3+y3*y3+z3*z3)){
+				return "roi2";
+			}else{
+				return "roi3";
+			}
+		}
+		function onDocumentMouseMove(event){
+        	mouseX = event.clientX  - window.innerWidth/2;
+        	mouseY = event.clientY  - window.innerHeight/2;
+		}
+
+
+
+     	function onDocumentMouseScroll(event){
 
           mouseZ -=  event.wheelDeltaY * 0.05;
 
-      }
-</script>
+      	}
+
+      	function changeVisible(guide){
+      		if(guide == "frontiere"){
+      			front1.visible = true;
+      			front2.visible = true;
+      			front3.visible = true;
+      			front4.visible = true;
+      			texte.visible = false;
+      			fleche.visible = false;
+      			ligne.visible = false;
+      			halo = false;
+
+      		}else if(guide == "texte"){	
+      			front1.visible = false;
+      			front2.visible = false;
+      			front3.visible = false;
+      			front4.visible = false;
+      			texte.visible = true;
+      			fleche.visible = false;
+      			ligne.visible = false;
+      			halo = false;
+
+      		}else if(guide == "fleche"){
+      			front1.visible = false;
+      			front2.visible = false;
+      			front3.visible = false;
+      			front4.visible = false;
+      			texte.visible = false;
+      			fleche.visible = true;
+      			ligne.visible = false;
+      			halo = false;
+
+      		}else if(guide == "ligne"){
+      			front1.visible = false;
+      			front2.visible = false;
+      			front3.visible = false;
+      			front4.visible = false;
+      			texte.visible = false;
+      			fleche.visible = false;
+      			ligne.visible = true;
+      			halo = false;
+
+      		}else{
+      			front1.visible = false;
+      			front2.visible = false;
+      			front3.visible = false;
+      			front4.visible = false;
+      			texte.visible = false;
+      			fleche.visible = false;
+      			ligne.visible = false;
+      			halo = true;
+
+      		}
+      	}
+
+	</script>
 
 
 	<script type="text/javascript">
