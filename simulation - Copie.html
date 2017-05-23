@@ -1,0 +1,198 @@
+<html>
+	<head>
+		<title>My first three.js app</title>
+
+		<style>
+			body { 
+				margin: 0;
+			}
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="../build/three.js"></script>
+		<script src="js/controls/DragControls.js"></script>
+		<script src="js/controls/TrackballControls.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script>
+			var container;
+			var camera, controls, scene, renderer;
+			var objects = [];
+			
+			var chemin = [[5,2],[4,4],[7,-2]];
+			var bounders = [-600,600,-600,600,-600,600];		//[Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+			var sceneFont;
+			var visibleMessage;
+
+
+			
+				//Conteneur/Div pour l'animation
+				container = document.createElement( 'div' );
+				document.body.appendChild(container);
+
+				//Position pour la visualisation de l'espace 3D
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 1000;
+
+				//Définitions des caractéristique lors de la manipulation de la camera
+				controls = new THREE.TrackballControls(camera);
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+				controls.noZoom = false;
+				controls.noPan = false;
+				controls.staticMoving = true;
+				controls.dynamicDampingFactor = 0.3;
+
+				//Création de la scene 3D
+				scene = new THREE.Scene();
+				scene.add(new THREE.AmbientLight(0x505050));
+
+				//Création d'une source lumineuse
+				var light = new THREE.SpotLight( 0xffffff, 1.5 );
+				light.position.set( 0, 500, 2000 );
+				light.castShadow = true;
+
+				light.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(50, 1, 200, 10000));
+				light.shadow.bias = - 0.00022;
+
+				light.shadow.mapSize.width = 20;
+				light.shadow.mapSize.height = 20;
+
+				scene.add(light);
+
+				//Création d'un rectangle 3D pour repréenter le carton
+				var geometry = new THREE.BoxGeometry( 40, 40, 40 );
+
+				var object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x3A3C3C }));
+
+				object.position.x = 0;
+				object.position.y = 0;
+				object.position.z = 0;
+
+				object.rotation.x = 0;
+				object.rotation.y = 0;
+				object.rotation.z = 0;
+
+				object.scale.x = 5;
+				object.scale.y = 4;
+				object.scale.z = 0.2;
+
+				object.castShadow = true;
+				object.receiveShadow = true;
+
+				scene.add(object);
+
+				objects.push(object);
+
+				//Font Loader
+				var params;
+				var textMeshRigth, textMeshLeft, textMeshUp, textMeshDown, textMeshBack, textMeshForward;
+				var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+
+				var loader = new THREE.FontLoader();
+				loader.load('fonts/helvetiker_regular.typeface.json', function(font) {
+					params = {
+						font: font,
+						height: 0.1,
+						size: 10,
+					};
+					
+					textMeshRigth = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+					textMeshRigth.visible = false;
+					textMeshRigth.name = "rigth";
+					scene.add(textMeshRigth);
+
+					textMeshLeft = new THREE.Mesh(new THREE.TextGeometry("Allez a gauche\n  Move to left", params), textMaterial);
+					textMeshLeft.visible = false;
+					textMeshLeft.name = "rigth";
+					scene.add(textMeshLeft);
+
+					textMeshUp = new THREE.Mesh(new THREE.TextGeometry("Remontez\n  Move up", params), textMaterial);
+					textMeshUp.visible = false;
+					textMeshUp.name = "rigth";
+					scene.add(textMeshUp);
+
+					textMeshDown = new THREE.Mesh(new THREE.TextGeometry("Descendez\n  Move down", params), textMaterial);
+					textMeshDown.visible = false;
+					textMeshDown.name = "rigth";
+					scene.add(textMeshDown);
+
+					textMeshBack = new THREE.Mesh(new THREE.TextGeometry("Reculez\n  Step back", params), textMaterial);
+					textMeshBack.visible = false;
+					textMeshBack.name = "rigth";
+					scene.add(textMeshBack);
+
+					textMeshForward = new THREE.Mesh(new THREE.TextGeometry("Avancez\n  Go forward", params), textMaterial);
+					textMeshForward.visible = false;
+					textMeshForward.name = "rigth";
+					scene.add(textMeshForward);
+				});				
+
+				//Caractéristiques du rendu graphique
+				renderer = new THREE.WebGLRenderer({antialias: true});
+				renderer.setClearColor(0xf0f0f0);
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.sortObjects = false;
+
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
+
+				container.appendChild(renderer.domElement);
+
+				//Ajout du drag and drop pour la caméra et l'ensemble des objets spécifiés.
+				var dragControls = new THREE.DragControls( objects, camera, renderer.domElement );
+				dragControls.addEventListener('dragstart', function(event){ controls.enabled = false; });
+				dragControls.addEventListener('drag', function(event){ colorChange(objects[0].position.x, objects[0].position.y, objects[0].position.z, light); });
+				dragControls.addEventListener('dragend', function(event){ controls.enabled = true; });
+
+				//Ajout d'une fonction pour l'évenement window resize
+				window.addEventListener( 'resize', onWindowResize, false );
+			
+			animate();
+
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			function animate() {
+				requestAnimationFrame(animate);
+				controls.update();
+				renderer.render(scene, camera);
+			}
+
+			function colorChange(x, y, z, light) {
+				var color;
+
+				if(visibleMessage !== undefined)
+					visibleMessage.visible = false;
+
+				if(x < bounders[0]){
+					visibleMessage = textMeshRigth;
+				} else if(x > bounders[1]){
+					visibleMessage = textMeshLeft;
+				} else if(y < bounders[2]){
+					visibleMessage = textMeshUp;
+				} else if(y > bounders[3]){
+					visibleMessage = textMeshDown;
+				} else if(z < bounders[4]){
+					visibleMessage = textMeshBack;
+				} else if(z > bounders[5]){
+					visibleMessage = textMeshForward;
+				} else {
+					light.color.setHex(0xffffff);
+					return;
+				}
+
+				light.color.setHex(0xff0000);
+
+				visibleMessage.visible = true;
+				visibleMessage.position.set(x, y, z+6);
+			}
+		</script>
+	</body>
+</html>
