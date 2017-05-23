@@ -3,7 +3,7 @@
 		<title>My first three.js app</title>
 
 		<style>
-			body { 
+			body {
 				margin: 0;
 			}
 			canvas { width: 100%; height: 100% }
@@ -18,14 +18,14 @@
 			var container;
 			var camera, controls, scene, renderer;
 			var objects = [];
-			
+
 			var chemin = [[5,2],[4,4],[7,-2]];
 			var bounders = [-600,600,-600,600,-600,600];		//[Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
 			var sceneFont;
 			var visibleMessage;
 
 
-			
+
 				//Conteneur/Div pour l'animation
 				container = document.createElement( 'div' );
 				document.body.appendChild(container);
@@ -97,7 +97,7 @@
 						height: 0.1,
 						size: 10,
 					};
-					
+
 					textMeshRigth = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
 					textMeshRigth.visible = false;
 					textMeshRigth.name = "rigth";
@@ -127,7 +127,7 @@
 					textMeshForward.visible = false;
 					textMeshForward.name = "rigth";
 					scene.add(textMeshForward);
-				});				
+				});
 
 				//Caractéristiques du rendu graphique
 				renderer = new THREE.WebGLRenderer({antialias: true});
@@ -149,7 +149,7 @@
 
 				//Ajout d'une fonction pour l'évenement window resize
 				window.addEventListener( 'resize', onWindowResize, false );
-			
+
 			animate();
 
 
