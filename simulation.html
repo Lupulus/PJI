@@ -1,227 +1,178 @@
+<!doctype html>
 <html>
-	<head>
-		<title>My first three.js app</title>
+  <head>
+    <title>Mon premier rendu 3D avec Three.js</title>
+    <meta charset="utf-8">
+    <link  href="css/main.css" rel="stylesheet"/>
+  </head>
+<body>
+  <script src="lib/three.js"></script>
+	<script src="lib/three.min.js"></script>
+  <script src="lib/js/Mirror.js"></script>
+	<script src="lib/js/controls/TrackballControls.js"></script>
 
-		<style>
-		html, body {
-				height: 100%;
-			}
+		<script type="text/javascript">
 
-		body {
-			background-: #050505;
-			background: rgb(43,45,48); /* Old browsers */
-			background: -moz-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%, rgba(0,0,0,1) 100%); /* FF3.6+ */
-			/*background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(43,45,48,1)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
-			background: -webkit-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
-			background: -o-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* Opera 12+ */
-			background: -ms-radial-gradient(center, ellipse cover,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* IE10+ */
-			background: radial-gradient(ellipse at center,  rgba(43,45,48,1) 0%,rgba(0,0,0,1) 100%); /* W3C */
-			margin: 0;
-			font-family: Arial;
-			overflow: hidden;
-		}
-		#topmenu {
-				position: absolute;
-				top: 10px;
-				right: 10px;
-				width: 100%;
-				text-align: right;
-				padding: 0;
-				margin: 0;
-				z-index: 1;
-			}
-
-			button {
-				color: rgb(255,255,255);
-				background: transparent;
-				border: 0px;
-				padding: 5px 10px;
-				cursor: pointer;
-			}
-			button:hover {
-				background-color: rgba(0,255,255,0.5);
-			}
-			button:active {
-				color: #000000;
-				background-color: rgba(0,255,255,1);
-			}
-			canvas { width: 100%; height: 100% ;}
-		</style>
-	</head>
-	<body>
-		<div id="topmenu"></div>
-		<div id="container"></div>
-
-		<script src="../build/three.js"></script>
-		<script src="js/controls/DragControls.js"></script>
-		<script src="js/controls/TrackballControls.js"></script>
-		<script src="js/libs/stats.min.js"></script>
-		<script>
-	  var guides = {
-			"Frontiere": "frontiere",
-			"Texte" : "texte",
-			"Fleches" : "fleche",
-			"Halo" : "halo"
-			};
-			var container, stats;
-			var camera, controls, scene, renderer;
-			var objects = [];
-			var menu = document.getElementById("topmenu");
-			var chemin = [[5,2],[4,4],[7,-2]];
-			var oscMessage;
-
+      document.addEventListener('mousemove', onDocumentMouseMove, false);
+      var container = document.createElement('div');
+			document.body.appendChild(container);
+      
+			var renderer, scene, camera, roi1, roi2, roi3;
+			var controls, carton;
+      var mouseX = 20, mouseY = 50;
+			var params = {opacity: 0.25};
+			var WIDTH = window.innerWidth;
+			var HEIGHT = window.innerHeight;
 			init();
 			animate();
 
-			function init() {
-				container = document.getElementById( 'container' );
-				document.body.appendChild( container );
-
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 5000 );
-				camera.position.z = 1500;
-
-				//création d'une scène
+			function init(){
+				// on initialise la scène
 				scene = new THREE.Scene();
 
-				root = new THREE.Object3D();
-				scene.add( root );
-
-				//Initialisation du moteur de rendu
-				renderer = new THREE.CSS3DRenderer();
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement )
-
-/////////////////////////////////////////////////////////////////////
-				//placement de la caméra
+				// on initialise la camera que l’on place ensuite sur la scène
+				camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set(0, 75, 310);
+        scene.add(camera);
+				//Création de la scène
+				var groundMirror = new THREE.Mirror( 200, 200, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT, color: 0x303030 } );
+				groundMirror.rotateX( - Math.PI / 2 );
+				scene.add( groundMirror );
 
 
+        //Création d'un rectangle 3D pour repréenter le carton
+				var geometry = new THREE.BoxGeometry( 13, 10, 2 );
 
-				//controle de la caméra
-				controls = new THREE.TrackballControls( camera, renderer.domElement );
-				controls.rotateSpeed = 0.5;
-				controls.addEventListener( 'change', render );
+				carton = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x778899 }));
 
+				carton.position.x = 20;
+				carton.position.y = 50;
+				carton.position.z = 20;
 
+				carton.scale.x = 5;
+				carton.scale.y = 4;
+				carton.scale.z = 0.2;
 
-				scene.add( new THREE.AmbientLight( 0x505050 ) );
+				carton.castShadow = true;
+				carton.receiveShadow = true;
 
-				var light = new THREE.SpotLight( 0xffffff, 1.5 );
-				light.position.set( 0, 500, 2000 );
-				light.castShadow = true;
+				scene.add(carton);
 
-				light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 50, 1, 200, 10000 ) );
-				light.shadow.bias = - 0.00022;
+				//Création des ROI
+				geometry = new THREE.SphereBufferGeometry(20, 20, 20);
+				var material1 = new THREE.MeshStandardMaterial( {
+					opacity: params.opacity,
+					//transparent: true,
+					color: 0xffffff
+				} );
+				roi1 = new THREE.Mesh(geometry, material1);
+				roi1.position.x = 20;
+				roi1.position.y = 40;
+				roi1.position.z = 43;
+				scene.add(roi1);
 
-				light.shadow.mapSize.width = 2048;
-				light.shadow.mapSize.height = 2048;
+				var material2 = new THREE.MeshStandardMaterial( {
+					opacity: params.opacity,
+					//transparent: true,
+					color: 0xffffff
+				} );
+				roi2 = new THREE.Mesh(geometry, material1);
+				roi2.position.x = 55;
+				roi2.position.y = 70;
+				roi1.position.z = 10;
+				scene.add(roi2);
 
-				scene.add( light );
-
-
-
-
-
-				var geometry = new THREE.BoxGeometry( 40, 40, 40 );
-
-				//for(var i = 0; i < 200; i ++){
-				//création du carton
-				var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0x3A3C3C } ) );
-
-				object.position.x = document.documentElement.clientWidth/4;
-				object.position.y = document.documentElement.clientHeight/4;
-				object.position.z = 0;
-
-				object.rotation.x = 0;
-				object.rotation.y = 0;
-				object.rotation.z = 0;
-
-				object.scale.x = 5;
-				object.scale.y = 4;
-				object.scale.z = 0.2;
-
-				object.castShadow = true;
-				object.receiveShadow = true;
-
-				scene.add( object );
-
-				objects.push( object );
-				//}
-				var mirror = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: 0xfffff0 } ) );
-
-				mirror.position.x = document.documentElement.clientWidth/4;
-				mirror.position.y = document.documentElement.clientHeight/4;
-				mirror.position.z = -520;
-
-				mirror.rotation.x = 0;
-				mirror.rotation.y = 0;
-				mirror.rotation.z = 0;
-
-				mirror.scale.x = 50;
-				mirror.scale.y = 40;
-				mirror.scale.z = 0.2;
-
-				mirror.opacity = 90;
-
-				scene.add( mirror );
-
-				for (var g in guides){
-					var button = document.createElement('button');
-					button.innerHTML = g;
-					menu.appendChild(button);
-
-					var osc = "guides/" + guides[g];
-					button.addEventListener('click', generateOscFormat(osc), false);
-				}
+				var material3 = new THREE.MeshStandardMaterial( {
+					opacity: params.opacity + 0.5,
+					//transparent: true,
+					color: 0xffffff
+				} );
+				roi3 = new THREE.Mesh(geometry, material1);
+				roi3.position.x = -40;
+				roi3.position.y = 70;
+				roi3.position.z = -25;
+				scene.add(roi3);
 
 
-				var dragControls = new THREE.DragControls( objects, camera, renderer.domElement );
-				dragControls.addEventListener( 'dragstart', function ( event ) { controls.enabled = false; } );
-				dragControls.addEventListener( 'dragend', function ( event ) { controls.enabled = true; } );
 
-				var info = document.createElement( 'div' );
-				info.style.position = 'absolute';
-				info.style.top = '10px';
-				info.style.width = '100%';
-				info.style.textAlign = 'center';
-				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - draggable cubes';
-				container.appendChild( info );
+				//Création des guides
 
-				stats = new Stats();
-				container.appendChild( stats.dom );
+				var guideFront = new THREE.MeshBasicMaterial( {
+					opacity: params.opacity + 0.5,
+					transparent: true,
+					color: 0xFF0000
+				} );
 
-				window.addEventListener( 'resize', onWindowResize, false );
+				geometry = new THREE.CubeGeometry(200, 200, 200);
+
+
+				var front1 = new THREE.Mesh(geometry, guideFront);
+				front1.position.x = 200;
+				front1.position.y = 100;
+
+				var front2 = new THREE.Mesh(geometry, guideFront);
+				front2.position.y = 100;
+				front2.position.z = -	200;
+
+				var front3 = new THREE.Mesh(geometry, guideFront);
+				front3.position.x = -200;
+				front3.position.y = 100;
+
+				var front4 = new THREE.Mesh(geometry, guideFront);
+				front4.position.y = 300;
+
+				scene.add(front1);
+				scene.add(front2);
+				scene.add(front3);
+				scene.add(front4);
+
+				var front2 = new THREE.Mesh(geometry, guideFront);
+				front2.position.x = -200;
+				front2.position.y = 0;
+
+
+				var spotLight = new THREE.SpotLight( 0x8888ff );
+				spotLight.position.set( - 100, - 200, - 100 );
+				spotLight.angle = Math.PI / 6;
+				spotLight.penumbra = 0.9;
+				scene.add( spotLight );
+
+				renderer = new THREE.WebGLRenderer({antialias: true});
+				renderer.setClearColor(0xf0f0f0);
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.sortObjects = false;
+
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFShadowMap;
+
+				container.appendChild(renderer.domElement);
 			}
 
-			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize( window.innerWidth, window.innerHeight );
-			}
+			function animate(){
 
-			function animate() {
-				requestAnimationFrame( animate );
-				render();
-				updateOSC();
-				stats.update();
-			}
-
-			function generateOscFormat(osc){
-				oscMessage = osc;
-			}
-
-			function updateOSC(){
-					//Récupérer /guides/truc
-					//Récupérer positino du carton
-					//appeler avec un format OSC
-					//Récupérer une variable de type osc
-					//faire les modifs (couleur, afdfichage truc du genre)
-			}
-
-			function render() {
-				controls.update();
+				// on fait tourner le cube sur ses axes x et y
+				//mesh.rotation.x += 0.01;
+				//mesh.rotation.y += 0.02;
+				// on effectue le rendu de la scène
+        carton.position.x = mouseX;
+        carton.position.y = mouseY;
 				renderer.render( scene, camera );
+
+
+        // on appel la fonction animate() récursivement à chaque frame
+				requestAnimationFrame( animate );
 			}
 
-		</script>
-	</body>
+			function onDocumentMouseMove(event){
+        mouseX = event.clientX - canvas.left;
+        mouseY = event.clientY - canvas.top;
+			}
+</script>
+
+
+	<script type="text/javascript">
+
+  </script>
+</body>
 </html>
