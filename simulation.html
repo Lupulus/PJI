@@ -15,9 +15,7 @@
   	<button onclick="changeVisible('fleche')">Fleche</button>
   </div>
   <script src="lib/three.js"></script>
-	<script src="lib/three.min.js"></script>
   <script src="lib/js/Mirror.js"></script>
-	<script src="lib/js/controls/TrackballControls.js"></script>
 
 	<script type="text/javascript">
 
@@ -153,8 +151,10 @@
 				scene.add(front4);
 
 				//TEXTE
-				
-				texte = "coucou";
+				var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+				texte = new THREE.Mesh(new THREE.TextGeometry(directionTexte, params), textMaterial);
+				texte.visible = false;
+				scene.add(texte);
 
 				//FLECHE
 				//Fleche
@@ -294,10 +294,43 @@
 
 			scene.remove(texte);
 
-			texte = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+			var directionTexte = directionTexte(directionVector(roiT));
+
+			var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+			texte = new THREE.Mesh(new THREE.TextGeometry(directionTexte, params), textMaterial);
 			texte.visible = true;
 			scene.add(texte);
 
+		}
+
+
+		//Renvoie la direction à pointer ou à écrire
+		function directionVector(roiD){
+			var dirX = roiD.position.x - carton.position.x;
+			var dirY = roiD.position.x - carton.position.y;
+			var dirZ = roiD.position.z - carton.position.z;
+			return Vector3(dirX, dirY, dirZ);
+		}
+
+		//Renvoie le texte à afficher
+		function directionTexte(vec){
+			var texteAffiche = "";
+			if(vec.x > 0)
+				texteAffiche = texteAffiche.concat("Gauche ");
+			else if(vec.x < 0) 
+				texteAffiche = texteAffiche.concat("Droite ");
+
+			if(vec.y > 0)
+				texteAffiche = texteAffiche.concat("Bas ");
+			else if(vec.y < 0) 
+				texteAffiche = texteAffiche.concat("Haut ");
+
+			if(vec.z > 0)
+				texteAffiche = texteAffiche.concat("Devant ");
+			else if(vec.z < 0) 
+				texteAffiche = texteAffiche.concat("Derriere ");
+
+			return texteAffiche;
 		}
 
 		//Renvoie la ROI la plus proche
