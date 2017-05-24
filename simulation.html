@@ -19,26 +19,28 @@
 
 	<script type="text/javascript">
 
-      document.addEventListener('onscroll', onDocumentMouseScroll, false);
-      document.addEventListener('mousemove', onDocumentMouseMove, false);
-      var container = document.createElement('div');
+		    document.addEventListener('DOMMouseScroll', onDocumentMouseScroll, false);
+		    document.addEventListener('mousemove', onDocumentMouseMove, false);
+		    var container = document.createElement('div');
 			document.body.appendChild(container);
 
-      var GUIDES ={
-        "Frontiere": "frontiere",
-        "Fleche": "fleche",
-        "Texte": "texte",
-        "Ligne": "ligne",
-        "Halo": "halo"
-      };
+		    var GUIDES ={
+		      "Frontiere": "frontiere",
+		      "Fleche": "fleche",
+		      "Texte": "texte",
+		      "Ligne": "ligne",
+		      "Halo": "halo"
+		    };
 
+		    var dist1, dist2, dist3; //distance entre ROI et carton
+      		var lastscroll = mouseZ + 1;
       		var front1, front2, front3, front4;
       		var fleche, ligne, texte;
       		var halo1, halo2, halo3;
      		var menu = document.getElementById("topmenu");
 			var renderer, scene, camera, roi1, roi2, roi3;
 			var controls, carton;
-      		var mouseX = 20, mouseY = 50, mouseZ = 20;
+      		var mouseX = 20, mouseY = 50, mouseZ = 10;
 			var params = {opacity: 0.25};
 			var WIDTH = window.innerWidth;
 			var HEIGHT = window.innerHeight;
@@ -62,18 +64,18 @@
         		//Création d'un rectangle 3D pour repréenter le carton
 				var geometry = new THREE.BoxGeometry( 13, 10, 2 );
 
-				carton = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x778899 }));
+				carton = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x0F056B }));
 
-				carton.position.x = 20;
-				carton.position.y = 50;
-				carton.position.z = 20;
+				carton.position.x = mouseX;
+				carton.position.y = mouseY;
+				carton.position.z = mouseZ;
 
 				carton.scale.x = 5;
 				carton.scale.y = 4;
 				carton.scale.z = 0.2;
 
-				carton.castShadow = true;
-				carton.receiveShadow = true;
+				carton.castShadow = false;
+				carton.receiveShadow = false;
 
 				scene.add(carton);
 
@@ -116,7 +118,7 @@
 
 				//Création des guides
 
-
+				//FRONTIERE
 				var guideFront = new THREE.MeshBasicMaterial( {
 					opacity: params.opacity + 0.5,
 					transparent: true,
@@ -151,10 +153,10 @@
 				scene.add(front4);
 
 				//TEXTE
-				var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+				/**var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
 				texte = new THREE.Mesh(new THREE.TextGeometry(directionTexte, params), textMaterial);
 				texte.visible = false;
-				scene.add(texte);
+				scene.add(texte);**/
 
 				//FLECHE
 				//Fleche
@@ -206,11 +208,18 @@
 				//ligne.attributes.position.needsUpdate = true;
 				scene.add(ligne);
 
-				var spotLight = new THREE.SpotLight( 0x8888ff );
-				spotLight.position.set( - 100, - 200, - 100 );
-				spotLight.angle = Math.PI / 6;
-				spotLight.penumbra = 0.9;
-				scene.add( spotLight );
+				//Création d'une source lumineuse
+				var light = new THREE.SpotLight(0xffffff, 1.5);
+				light.position.set(0, 500, 2000);
+				light.castShadow = true;
+
+				light.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(50, 1, 200, 10000));
+				light.shadow.bias = - 0.00022;
+
+				light.shadow.mapSize.width = 20;
+				light.shadow.mapSize.height = 20;
+
+				scene.add(light);
 
 				renderer = new THREE.WebGLRenderer({antialias: true});
 				renderer.setClearColor(0xf0f0f0);
@@ -264,18 +273,20 @@
 
 			scene.remove(ligne);
 
-			geometry = new THREE.Geometry();
-			geometry.vertices.push(roiT.position);
-			var temp = new THREE.Vector3(carton.position.x + 10, carton.position.y + 2, carton.position.z +5);
-			geometry.vertices.push(temp);
-			
-			ligne = new THREE.Line(geometry, new THREE.LineBasicMaterial(
-					{
-						color : 0x000000,
-						opacity : 0.08
-					})
-			);
-			scene.add(ligne);
+			if(dist1 >= 20 || dist2 >= 20 || dist3 >= 20){
+				geometry = new THREE.Geometry();
+				geometry.vertices.push(roiT.position);
+				var temp = new THREE.Vector3(carton.position.x + 10, carton.position.y + 2, carton.position.z +5);
+				geometry.vertices.push(temp);
+				
+				ligne = new THREE.Line(geometry, new THREE.LineBasicMaterial(
+						{
+							color : 0x000000,
+							opacity : 0.08
+						})
+				);
+				scene.add(ligne);
+			}
 		}
 
 		function updateTexte(){
@@ -341,20 +352,36 @@
 			var z1 = carton.position.z - roi1.position.z;
 
 			//Distance carton - roi2
-			var x2 = carton.position.x - roi1.position.x;
-			var y2 = carton.position.y - roi1.position.y;
-			var z2 = carton.position.z - roi1.position.z;
+			var x2 = carton.position.x - roi2.position.x;
+			var y2 = carton.position.y - roi2.position.y;
+			var z2 = carton.position.z - roi2.position.z;
 
 			//Distance carton - roi3
-			var x3 = carton.position.x - roi1.position.x;
-			var y3 = carton.position.y - roi1.position.y;
-			var z3 = carton.position.z - roi1.position.z;
+			var x3 = carton.position.x - roi3.position.x;
+			var y3 = carton.position.y - roi3.position.y;
+			var z3 = carton.position.z - roi3.position.z;
 			//sqrt[(Xa-Xb)²+(Ya-Yb)²+(Za-Zb)²]
-			if( Math.sqrt(x1*x1+y1*y1+z1*z1) < Math.sqrt(x2*x2+y2*y2+z2*z2) ){
-				return "roi1";
-			} else if(Math.sqrt(x2*x2+y2*y2+z2*z2) < Math.sqrt(x3*x3+y3*y3+z3*z3)){
+
+			dist1 = Math.sqrt(x1*x1+y1*y1+z1*z1);
+			dist2 = Math.sqrt(x2*x2+y2*y2+z2*z2);
+			dist3 = Math.sqrt(x3*x3+y3*y3+z3*z3);
+
+		
+			if( dist1 < dist2 ){
+				dist2 = 0;
+				if(dist1 < dist3){
+					dist3 = 0;
+					return "roi1";
+				}
+				dist1 = 0;
+				return "roi3"
+			} else if(dist2 < dist3){
+				dist1 = 0;
+				dist3 = 0;
 				return "roi2";
 			}else{
+				dist2 = 0;
+				dist3 = 0;
 				return "roi3";
 			}
 		}
@@ -367,7 +394,8 @@
 
      	function onDocumentMouseScroll(event){
 
-          mouseZ -=  event.wheelDeltaY * 0.05;
+     		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+     		mouseZ = mouseZ + 5*delta;
 
       	}
 
@@ -377,7 +405,7 @@
       			front2.visible = true;
       			front3.visible = true;
       			front4.visible = true;
-      			texte.visible = false;
+      			//texte.visible = false;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = false;
@@ -387,7 +415,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			texte.visible = true;
+      			//texte.visible = true;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = false;
@@ -397,7 +425,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			texte.visible = false;
+      			//texte.visible = false;
       			fleche.visible = true;
       			ligne.visible = false;
       			halo = false;
@@ -407,7 +435,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			texte.visible = false;
+      			//texte.visible = false;
       			fleche.visible = false;
       			ligne.visible = true;
       			halo = false;
@@ -417,7 +445,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			texte.visible = false;
+      			//texte.visible = false;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = true;
