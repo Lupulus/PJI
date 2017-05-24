@@ -1,0 +1,299 @@
+<script>
+			var container;
+			var camera, controls, scene, renderer;
+			var objects = [];
+			
+			var chemin = [[30,30,100],[-40,-100,-100],[-200,100,200],[400,300,-200]];
+			var idx = 0;
+			var bounders = [-600,600,-600,600,-600,600];		//[Xmin,Xmax,Ymin,Ymax,Zmin,Zmax]
+			var sceneFont;
+			var visibleMessage;
+			var shpereMesh1, shpereMesh2, shpereMesh3, shpereMesh4;
+			
+			//Conteneur/Div pour l'animation
+			container = document.createElement('div');
+			document.body.appendChild(container);
+
+			//Position pour la visualisation de l'espace 3D
+			camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+			camera.position.z = 1000;
+
+			//Définitions des caractéristique lors de la manipulation de la camera
+			controls = new THREE.TrackballControls(camera);
+			controls.rotateSpeed = 1.0;
+			controls.zoomSpeed = 1.2;
+			controls.panSpeed = 0.8;
+			controls.noZoom = false;
+			controls.noPan = false;
+			controls.staticMoving = true;
+			controls.dynamicDampingFactor = 0.3;
+
+			//Création de la scene 3D
+			scene = new THREE.Scene();
+			scene.add(new THREE.AmbientLight(0x505050));
+
+			//Création d'une source lumineuse
+			var light = new THREE.SpotLight(0xffffff, 1.5);
+			light.position.set(0, 500, 2000);
+
+			light.shadow = new THREE.LightShadow(new THREE.PerspectiveCamera(50, 1, 200, 10000));
+			light.shadow.bias = - 0.00022;
+
+			light.shadow.mapSize.width = 20;
+			light.shadow.mapSize.height = 20;
+
+			scene.add(light);
+
+			//Frontières
+			var planeGeo = new THREE.BoxGeometry(1200 + 300, 300, 1200 + 300);
+			var planeTop = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeTop.position.set(0, 600 + 150, 0);
+			scene.add(planeTop);
+			var planeBottom = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeBottom.position.set(0, -600 - 150, 0);
+			scene.add(planeBottom);
+
+			planeGeo = new THREE.BoxGeometry(1200 + 300, 1200 + 300, 300);
+			var planeBack = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeBack.position.set(0, 0, -600 - 150);
+			scene.add(planeBack);
+			var planeFront = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeFront.position.set(0, 0, 600 + 150);
+			scene.add(planeFront);
+
+			planeGeo = new THREE.BoxGeometry(300, 1200 + 300, 1200 + 300);
+			var planeRight = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeRight.position.set(600 + 150, 0, 0);
+			scene.add(planeRight);
+			var planeLeft = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }));
+			planeLeft.position.set(-600 - 150, 0, 0);
+			scene.add(planeLeft);
+
+			//Création d'un rectangle 3D pour repréenter le carton
+			var geometry = new THREE.BoxGeometry(40, 40, 40);
+
+			var carton = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0x3A3C3C }));
+
+			carton.position.x = 0;
+			carton.position.y = 0;
+			carton.position.z = 0;
+
+			carton.rotation.x = 0;
+			carton.rotation.y = 0;
+			carton.rotation.z = 0;
+
+			carton.scale.x = 5;
+			carton.scale.y = 4;
+			carton.scale.z = 0.2;
+
+			carton.castShadow = true;
+			carton.receiveShadow = true;
+
+			scene.add(carton);
+
+			objects.push(carton);
+
+			//Objects
+			var sphereMaterial = new THREE.MeshStandardMaterial( {
+				opacity: 0.25,
+				color: 0xffffff
+			} );
+
+			geometry = new THREE.SphereBufferGeometry(20, 20, 20);
+			
+			shpereMesh1 = new THREE.Mesh(geometry, sphereMaterial);
+			shpereMesh1.position.x = chemin[0][0];
+			shpereMesh1.position.y = chemin[0][1];
+			shpereMesh1.position.z = chemin[0][2];
+			scene.add(shpereMesh1);
+
+			shpereMesh2 = new THREE.Mesh(geometry, sphereMaterial);
+			shpereMesh2.position.x = chemin[1][0];
+			shpereMesh2.position.y = chemin[1][1];
+			shpereMesh2.position.z = chemin[1][2];
+			scene.add(shpereMesh2);
+
+			geometry = new THREE.SphereBufferGeometry(40, 40, 40);
+			shpereMesh3 = new THREE.Mesh(geometry, sphereMaterial);
+			shpereMesh3.position.x = chemin[2][0];
+			shpereMesh3.position.y = chemin[2][1];
+			shpereMesh3.position.z = chemin[2][2];
+			scene.add(shpereMesh3);
+
+			shpereMesh4 = new THREE.Mesh(geometry, sphereMaterial);
+			shpereMesh4.position.x = chemin[3][0];
+			shpereMesh4.position.y = chemin[3][1];
+			shpereMesh4.position.z = chemin[3][2];
+			scene.add(shpereMesh4);
+
+			//Fleche
+			var vertices = new Float32Array( [
+				 25.0,  30.0,  4,
+				 5.0,   30.0,  4,
+				 10.0,  0.0,   4,
+
+				 10.0,  0.0,   4,
+				 20.0,  0.0,   4,
+				 25.0,  30.0,  4,
+
+				 0.0,   30.0,  4,
+				 30.0,  30.0,  4,
+				 15.0,  50.0,  4
+			] );
+
+			var uvs = new Float32Array( [
+				 1, 1,
+				 0, 1,
+				 0, 0,
+
+				 0, 0,
+				 1, 0,
+				 1, 1
+			] );
+
+			var arrow = new THREE.BufferGeometry();
+			arrow.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+			arrow.attributes.position.needsUpdate = true;
+			arrow.center();
+    		arrow.translate(0,0,10);
+
+			var arrowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+			var arrowMesh = new THREE.Mesh(arrow, arrowMaterial);
+			scene.add(arrowMesh);
+			arrowUpdate();
+
+			//Redirect Text
+			var params;
+			var textMeshRigth, textMeshLeft, textMeshUp, textMeshDown, textMeshBack, textMeshForward;
+			var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+
+			var loader = new THREE.FontLoader();
+			loader.load('fonts/helvetiker_regular.typeface.json', function(font) {
+				params = {
+					font: font,
+					height: 0.1,
+					size: 10,
+				};
+				
+				textMeshRigth = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+				textMeshRigth.visible = false;
+				textMeshRigth.name = "rigth";
+				scene.add(textMeshRigth);
+
+				textMeshLeft = new THREE.Mesh(new THREE.TextGeometry("Allez a gauche\n  Move to left", params), textMaterial);
+				textMeshLeft.visible = false;
+				textMeshLeft.name = "rigth";
+				scene.add(textMeshLeft);
+
+				textMeshUp = new THREE.Mesh(new THREE.TextGeometry("Remontez\n  Move up", params), textMaterial);
+				textMeshUp.visible = false;
+				textMeshUp.name = "rigth";
+				scene.add(textMeshUp);
+
+				textMeshDown = new THREE.Mesh(new THREE.TextGeometry("Descendez\n  Move down", params), textMaterial);
+				textMeshDown.visible = false;
+				textMeshDown.name = "rigth";
+				scene.add(textMeshDown);
+
+				textMeshBack = new THREE.Mesh(new THREE.TextGeometry("Reculez\n  Step back", params), textMaterial);
+				textMeshBack.visible = false;
+				textMeshBack.name = "rigth";
+				scene.add(textMeshBack);
+
+				textMeshForward = new THREE.Mesh(new THREE.TextGeometry("Avancez\n  Go forward", params), textMaterial);
+				textMeshForward.visible = false;
+				textMeshForward.name = "rigth";
+				scene.add(textMeshForward);
+			});				
+
+			//Caractéristiques du rendu graphique
+			renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setClearColor(0xf0f0f0);
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.sortObjects = false;
+
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.PCFShadowMap;
+
+			container.appendChild(renderer.domElement);
+
+			//Ajout du drag and drop pour la caméra et l'ensemble des objets spécifiés.
+			var dragControls = new THREE.DragControls( objects, camera, renderer.domElement );
+			dragControls.addEventListener('dragstart', function(event){ controls.enabled = false; });
+			dragControls.addEventListener('drag', function(event){ colorChange(carton.position.x, carton.position.y, carton.position.z); arrowUpdate();});
+			dragControls.addEventListener('dragend', function(event){ controls.enabled = true; });
+
+			//Ajout d'une fonction pour l'évenement window resize
+			window.addEventListener( 'resize', onWindowResize, false );
+			
+			animate();
+
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth/window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			function animate() {
+				requestAnimationFrame(animate);
+				controls.update();
+				renderer.render(scene, camera);
+			}
+
+			function colorChange(x, y, z) {
+				var color;
+
+				if(visibleMessage !== undefined)
+					visibleMessage.visible = false;
+
+				if(x < bounders[0]){
+					visibleMessage = textMeshRigth;
+				} else if(x > bounders[1]){
+					visibleMessage = textMeshLeft;
+				} else if(y < bounders[2]){
+					visibleMessage = textMeshUp;
+				} else if(y > bounders[3]){
+					visibleMessage = textMeshDown;
+				} else if(z < bounders[4]){
+					visibleMessage = textMeshBack;
+				} else if(z > bounders[5]){
+					visibleMessage = textMeshForward;
+				} else {
+					return;
+				}
+
+				visibleMessage.visible = true;
+				visibleMessage.position.set(x, y, z+6);
+			}
+
+			function arrowUpdate(){
+				var arrowVector = new THREE.Vector3(arrowMesh.position.x, arrowMesh.position.y, arrowMesh.position.z);
+				var pointUp = new THREE.Vector3(arrowMesh.position.x, arrowMesh.position.y+20, arrowMesh.position.z);
+				var objetToExplore = new THREE.Vector3(chemin[idx][0], chemin[idx][1], chemin[idx][2]);
+				var objetToExploreCopy = new THREE.Vector3(chemin[idx][0], chemin[idx][1], chemin[idx][2]);
+				var cartonVec = new THREE.Vector3(carton.position.x, carton.position.y, carton.position.z);
+
+				var u = pointUp.sub(arrowVector);
+				var v = objetToExplore.sub(arrowVector);
+
+				var angle = u.angleTo(v);
+				if(arrowVector.x < objetToExplore.x)
+					angle = -angle;
+
+				console.log(idx);
+				console.log("--");
+				arrowMesh.rotation.z = angle;
+
+				arrowMesh.position.set(carton.position.x-65, carton.position.y-45, carton.position.z);
+
+				if(carton.position.z < chemin[idx][2]+10 && carton.position.z > chemin[idx][2]-10 && objetToExploreCopy.distanceTo(cartonVec) < 100){
+					idx++;
+				}
+				if(idx == 4){
+					idx=0;
+				}
+			}
+		</script>

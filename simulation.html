@@ -12,7 +12,8 @@
   	<!-- <button onclick="changeVisible('halo')">Halo</button> -->
   	<button onclick="changeVisible('texte')">Texte</button>
   	<button onclick="changeVisible('ligne')">Ligne</button>
-  	<button onclick="changeVisible('fleche')">Fleche</button>
+  	<button onclick="changeVisible('chemin')">Fleche chemin</button>
+  	<button  onclick="changeVisible('direction')">Fleche direction</button>
   </div>
   <script src="lib/three.js"></script>
   <script src="lib/js/Mirror.js"></script>
@@ -32,6 +33,9 @@
 		      "Halo": "halo"
 		    };
 
+		  	var idx = 0;
+			var isChemin = false;
+			
 		    var dist1, dist2, dist3; //distance entre ROI et carton
       		var lastscroll = mouseZ + 1;
       		var front1, front2, front3, front4;
@@ -44,6 +48,9 @@
 			var params = {opacity: 0.25};
 			var WIDTH = window.innerWidth;
 			var HEIGHT = window.innerHeight;
+			var roi1, roi2, roi3;
+			var chemin ;
+			
 			init();
 			animate();
 
@@ -158,7 +165,6 @@
 				texte.visible = false;
 				scene.add(texte);**/
 
-				//FLECHE
 				//Fleche
 				var vertices = new Float32Array( [
 					 25.0,  30.0,  4,
@@ -187,13 +193,19 @@
 				var arrow = new THREE.BufferGeometry();
 				arrow.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
 				arrow.attributes.position.needsUpdate = true;
+				arrow.center();
+				arrow.scale(0.4,0.4,0.5);
+	    		arrow.translate(0,0,10);
 
 				var arrowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 				fleche = new THREE.Mesh(arrow, arrowMaterial);
-				fleche.position.set(carton.position.x-5, carton.position.y-50, carton.position.z);
 				fleche.visible = false;
 				scene.add(fleche);
+
+				//DEFINITION DU CHEMIN DES FLECHES
+				chemin = [[roi1.x,roi1.y,roi1.z],[roi2.x,roi2.y,roi2.z],[roi3.x, roi3.y,roi3.z]];
+				//arrowUpdate();
 
 				//LIGNE
 				geometry = new THREE.Geometry();
@@ -245,8 +257,8 @@
        		carton.position.y = mouseY;
         	carton.position.z = mouseZ;
 			renderer.render( scene, camera );
-
-			arrowUpdate();
+			if (fleche.visible == true)
+				arrowUpdate();
 			if(ligne.visible == true)
 				updateLine();
         	// on appel la fonction animate() récursivement à chaque frame
@@ -254,8 +266,64 @@
 		}
 
 		function arrowUpdate(){
-			fleche.position.set(carton.position.x-90, carton.position.y-70, carton.position.z);
+			var arrowVector = new THREE.Vector3(fleche.position.x, fleche.position.y, fleche.position.z);
+			var pointUp = new THREE.Vector3(fleche.position.x, fleche.position.y+20, fleche.position.z);
+			
+			if(isChemin){
+				var objetToExplore = new THREE.Vector3(chemin[idx][0], chemin[idx][1], chemin[idx][2]);
+				var objetToExploreCopy = new THREE.Vector3(chemin[idx][0], chemin[idx][1], chemin[idx][2]);
+				var cartonVec = new THREE.Vector3(carton.position.x, carton.position.y, carton.position.z);
+
+				var u = pointUp.sub(arrowVector);
+				var v = objetToExplore.sub(arrowVector);
+
+				var angle = u.angleTo(v);
+				if(arrowVector.x < objetToExplore.x)
+					angle = -angle;
+
+				console.log(idx);
+				console.log("--");
+				fleche.rotation.z = angle;
+				fleche.visible = true;
+				fleche.position.set(carton.position.x-15, carton.position.y-10, carton.position.z);
+
+				if(carton.position.z < chemin[idx][2]+10 && carton.position.z > chemin[idx][2]-10 && objetToExploreCopy.distanceTo(cartonVec) < 100){
+					idx++;
+				}
+				if(idx == 3){
+					idx=0;
+				}
+			}else{
+				var roiT;
+				var roiP = testROI();
+				switch (roiP){
+					case "roi1":
+						roiT = roi1;
+						break;
+					case "roi2":
+						roiT = roi2;
+						break;
+					case "roi3":
+						roiT = roi3;
+				}
+
+				var objetToExplore = new THREE.Vector3(roiT.x, roiT.y, roiT.z);
+				var objetToExploreCopy = new THREE.Vector3(roiT.x, roiT.y, roiT.z);
+
+				var u = pointUp.sub(arrowVector);
+				var v = objetToExplore.sub(arrowVector);
+
+				var angle = u.angleTo(v);
+				if(arrowVector.x < objetToExplore.x)
+					angle = -angle;
+
+				fleche.rotation.z = angle;
+				fleche.visible = true;
+				fleche.position.set(carton.position.x-15, carton.position.y-10, carton.position.z);
+
+			}
 		}
+		
 
 		function updateLine(){
 			var roiT;
@@ -420,13 +488,25 @@
       			ligne.visible = false;
       			halo = false;
 
-      		}else if(guide == "fleche"){
+      		}else if(guide == "chemin"){
       			front1.visible = false;
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
       			//texte.visible = false;
       			fleche.visible = true;
+      			isChemin = true;
+      			ligne.visible = false;
+      			halo = false;
+
+      		}else if(guide == "direction"){
+      			front1.visible = false;
+      			front2.visible = false;
+      			front3.visible = false;
+      			front4.visible = false;
+      			//texte.visible = false;
+      			fleche.visible = true;
+      			isChemin = false;
       			ligne.visible = false;
       			halo = false;
 
