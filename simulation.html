@@ -45,12 +45,15 @@
 			var renderer, scene, camera, roi1, roi2, roi3;
 			var controls, carton;
       		var mouseX = 20, mouseY = 50, mouseZ = 10;
-			var params = {opacity: 0.25};
+			var param = {opacity: 0.25};
 			var WIDTH = window.innerWidth;
 			var HEIGHT = window.innerHeight;
 			var roi1, roi2, roi3;
 			var chemin ;
-			
+			var visibleMessage;
+			var bounders =  [-200,200,-200,200,-200,200];
+			var textMeshRigth, textMeshLeft, textMeshUp, textMeshDown, textMeshBack, textMeshForward;
+
 			init();
 			animate();
 
@@ -89,7 +92,7 @@
 				//Création des ROI
 				geometry = new THREE.SphereBufferGeometry(20, 20, 20);
 				var material1 = new THREE.MeshStandardMaterial( {
-					opacity: params.opacity,
+					opacity: param.opacity,
 					//transparent: true,
 					color: 0xffffff
 				} );
@@ -100,7 +103,7 @@
 				scene.add(roi1);
 
 				var material2 = new THREE.MeshStandardMaterial( {
-					opacity: params.opacity,
+					opacity: param.opacity,
 					//transparent: true,
 					color: 0xffffff
 				} );
@@ -111,7 +114,7 @@
 				scene.add(roi2);
 
 				var material3 = new THREE.MeshStandardMaterial( {
-					opacity: params.opacity + 0.5,
+					opacity: param.opacity + 0.5,
 					//transparent: true,
 					color: 0xffffff
 				} );
@@ -127,7 +130,7 @@
 
 				//FRONTIERE
 				var guideFront = new THREE.MeshBasicMaterial( {
-					opacity: params.opacity + 0.5,
+					opacity: param.opacity + 0.5,
 					transparent: true,
 					color: 0xFF0000
 				} );
@@ -159,11 +162,53 @@
 				scene.add(front3);
 				scene.add(front4);
 
+				visibleMessage = new THREE.Mesh(geometry, guideFront);
+				visibleMessage.visible = false;
+
 				//TEXTE
-				/**var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
-				texte = new THREE.Mesh(new THREE.TextGeometry(directionTexte, params), textMaterial);
-				texte.visible = false;
-				scene.add(texte);**/
+				
+				var params;
+				var textMeshRigth, textMeshLeft, textMeshUp, textMeshDown, textMeshBack, textMeshForward;
+				var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+
+				var loader = new THREE.FontLoader();
+				loader.load('fonts/helvetiker_regular.typeface.json', function(font) {
+					params = {
+						font: font,
+						height: 0.1,
+						size: 10,
+					};
+
+					textMeshRigth = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+					textMeshRigth.visible = false;
+					textMeshRigth.name = "rigth";
+					scene.add(textMeshRigth);
+
+					textMeshLeft = new THREE.Mesh(new THREE.TextGeometry("Allez a gauche\n  Move to left", params), textMaterial);
+					textMeshLeft.visible = false;
+					textMeshLeft.name = "rigth";
+					scene.add(textMeshLeft);
+
+					textMeshUp = new THREE.Mesh(new THREE.TextGeometry("Remontez\n  Move up", params), textMaterial);
+					textMeshUp.visible = false;
+					textMeshUp.name = "rigth";
+					scene.add(textMeshUp);
+
+					textMeshDown = new THREE.Mesh(new THREE.TextGeometry("Descendez\n  Move down", params), textMaterial);
+					textMeshDown.visible = false;
+					textMeshDown.name = "rigth";
+					scene.add(textMeshDown);
+
+					textMeshBack = new THREE.Mesh(new THREE.TextGeometry("Reculez\n  Step back", params), textMaterial);
+					textMeshBack.visible = false;
+					textMeshBack.name = "rigth";
+					scene.add(textMeshBack);
+
+					textMeshForward = new THREE.Mesh(new THREE.TextGeometry("Avancez\n  Go forward", params), textMaterial);
+					textMeshForward.visible = false;
+					textMeshForward.name = "rigth";
+					scene.add(textMeshForward);
+				});		
 
 				//Fleche
 				var vertices = new Float32Array( [
@@ -257,6 +302,9 @@
        		carton.position.y = mouseY;
         	carton.position.z = mouseZ;
 			renderer.render( scene, camera );
+			if(visibleMessage.visible == true){
+				updateTexte();
+			}
 			if (fleche.visible == true)
 				arrowUpdate();
 			if(ligne.visible == true)
@@ -358,27 +406,32 @@
 		}
 
 		function updateTexte(){
-			var roiT;
-			var roiP = testROI();
-			switch (roiP){
-				case "roi1":
-					roiT = roi1;
-					break;
-				case "roi2":
-					roiT = roi2;
-					break;
-				case "roi3":
-					roiT = roi3;
+			var color;
+			var x = carton.position.x;
+			var y = carton.position.y;
+			var z = carton.position.z;
+
+			if(visibleMessage !== undefined)
+				visibleMessage.visible = false;
+
+			if(x < bounders[0]){
+				visibleMessage = textMeshRigth;
+			} else if(x > bounders[1]){
+				visibleMessage = textMeshLeft;
+			} else if(y < bounders[2]){
+				visibleMessage = textMeshUp;
+			} else if(y > bounders[3]){
+				visibleMessage = textMeshDown;
+			} else if(z < bounders[4]){
+				visibleMessage = textMeshBack;
+			} else if(z > bounders[5]){
+				visibleMessage = textMeshForward;
+			} else {
+				return;
 			}
 
-			scene.remove(texte);
-
-			var directionTexte = directionTexte(directionVector(roiT));
-
-			var textMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
-			texte = new THREE.Mesh(new THREE.TextGeometry(directionTexte, params), textMaterial);
-			texte.visible = true;
-			scene.add(texte);
+			visibleMessage.visible = true;
+			visibleMessage.position.set(x, y, z+6);
 
 		}
 
@@ -473,7 +526,7 @@
       			front2.visible = true;
       			front3.visible = true;
       			front4.visible = true;
-      			//texte.visible = false;
+      			visibleMessage.visible = false;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = false;
@@ -483,7 +536,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			//texte.visible = true;
+      			visibleMessage.visible = true;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = false;
@@ -493,7 +546,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			//texte.visible = false;
+      			visibleMessage.visible = false;
       			fleche.visible = true;
       			isChemin = true;
       			ligne.visible = false;
@@ -504,7 +557,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			//texte.visible = false;
+				visibleMessage.visible = false;
       			fleche.visible = true;
       			isChemin = false;
       			ligne.visible = false;
@@ -515,7 +568,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			//texte.visible = false;
+      			visibleMessage.visible = false;
       			fleche.visible = false;
       			ligne.visible = true;
       			halo = false;
@@ -525,7 +578,7 @@
       			front2.visible = false;
       			front3.visible = false;
       			front4.visible = false;
-      			//texte.visible = false;
+      			visibleMessage.visible = false;
       			fleche.visible = false;
       			ligne.visible = false;
       			halo = true;
@@ -533,11 +586,6 @@
       		}
       	}
 
-	</script>
-
-
-	<script type="text/javascript">
-
-  </script>
+  	</script>
 </body>
 </html>

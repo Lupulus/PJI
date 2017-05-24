@@ -176,7 +176,35 @@
 					size: 10,
 				};
 				
-				
+				textMeshRigth = new THREE.Mesh(new THREE.TextGeometry("Allez a droite\nMove to rigth", params), textMaterial);
+				textMeshRigth.visible = false;
+				textMeshRigth.name = "rigth";
+				scene.add(textMeshRigth);
+
+				textMeshLeft = new THREE.Mesh(new THREE.TextGeometry("Allez a gauche\n  Move to left", params), textMaterial);
+				textMeshLeft.visible = false;
+				textMeshLeft.name = "rigth";
+				scene.add(textMeshLeft);
+
+				textMeshUp = new THREE.Mesh(new THREE.TextGeometry("Remontez\n  Move up", params), textMaterial);
+				textMeshUp.visible = false;
+				textMeshUp.name = "rigth";
+				scene.add(textMeshUp);
+
+				textMeshDown = new THREE.Mesh(new THREE.TextGeometry("Descendez\n  Move down", params), textMaterial);
+				textMeshDown.visible = false;
+				textMeshDown.name = "rigth";
+				scene.add(textMeshDown);
+
+				textMeshBack = new THREE.Mesh(new THREE.TextGeometry("Reculez\n  Step back", params), textMaterial);
+				textMeshBack.visible = false;
+				textMeshBack.name = "rigth";
+				scene.add(textMeshBack);
+
+				textMeshForward = new THREE.Mesh(new THREE.TextGeometry("Avancez\n  Go forward", params), textMaterial);
+				textMeshForward.visible = false;
+				textMeshForward.name = "rigth";
+				scene.add(textMeshForward);
 			});				
 
 			//Caractéristiques du rendu graphique
